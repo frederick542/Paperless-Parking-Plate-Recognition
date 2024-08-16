@@ -15,7 +15,7 @@ def root():
 
 @app.post("/predict")
 async def predict(file: UploadFile = File(...)):
-    if file.content_type not in ["image/jpeg", "image/png"]:
+    if file.content_type not in ["image/jpeg","image/jpg", "image/png"]:
         raise HTTPException(status_code=400, detail="Invalid file type. Only JPEG and PNG are supported.")
     image_bytes = await file.read()
     try:
