@@ -22,7 +22,7 @@ const parkIn = async (
   plateNumber: string
 ) => {
   const imageUrl = await getUrl(destinationPath);
-  const currentDate = new Date();
+  const currentDate = new Date().toISOString();
   const operation = 'in';
   const locationDocRef = db
     .collection('location')
@@ -62,7 +62,7 @@ const parkOut = async (
 
   const paidPerHour = locationDocSnap.data()?.paid_per_hour || 0;
   const paidStatus = userDocSnap.data()?.paidStatus || false;
-  const time_in = userDocSnap.data()?.currently_in[1];
+  const time_in = new Date(userDocSnap.data()?.currently_in[1]);
   const time_out = new Date();
 
   if (!paidStatus) {
@@ -74,7 +74,7 @@ const parkOut = async (
   }
 
   const minutesElapsed =
-    (time_out.getTime() - time_in.toDate().getTime()) / (1000 * 60);
+    (time_out.getTime() - time_in.getTime()) / (1000 * 60);
   const amountDue = paidPerHour * minutesElapsed;
 
   const userDocRefHistory = userDocSnap.ref
@@ -92,10 +92,11 @@ const parkOut = async (
     .doc(plateNumber);
 
   const batch = db.batch();
-
+  const time_out_string = time_out.toISOString();
+  const time_in_string = time_in.toISOString();
   batch.set(locationDocRef, {
-    time_in: time_in,
-    time_out: time_out,
+    time_in: time_in_string,
+    time_out: time_out_string,
     image: imageUrl,
     paid: amountDue,
   });
@@ -103,8 +104,9 @@ const parkOut = async (
   batch.set(userDocRefHistory, {
     image_out: imageUrl,
     paid: amountDue,
-    time_in: time_in,
-    time_out: time_out,
+    time_in: time_in_string,
+    time_out: time_out_string,
+    location: location,
   });
 
   batch.update(userDocSnap.ref, {
@@ -120,32 +122,115 @@ const parkOut = async (
 const pageSize = 10;
 const query = async (
   location: string,
-  timeIn: string,
-  timeOut: string,
-  plate_number: string,
-  lastVisibleId: FirebaseFirestore.DocumentSnapshot | null
+  timeInLowerLimit: Date,
+  timeInUpperLimit: Date,
+  plateNumber: string = '',
+  lastVisibleId: string,
+  operation: string
 ) => {
-  let lastVisible = lastVisibleId;
-  let query = db
+  let lastVisible = lastVisibleId
+    ? await db
+        .collection('location')
+        .doc(location)
+        .collection('in')
+        .doc(lastVisibleId)
+        .get()
+    : null;
+  let firestoreQuery = db
     .collection('location')
     .doc(location)
     .collection('in')
     .orderBy('time_in')
     .limit(pageSize);
-  if (lastVisible) {
-    query = query.startAfter(lastVisible);
-    return;
+
+  if (timeInLowerLimit) {
+    firestoreQuery = firestoreQuery.where('time_in', '>=', timeInLowerLimit);
   }
-  try {
-    let lastVisible: FirebaseFirestore.DocumentSnapshot | null = null;
-    console.log(db
-      .collection('location')
-      .doc(location)
-      .collection('in')
-      .doc('B1538BNQ'))
-      
-  } catch (error) {}
-  console.log(location, timeIn, timeOut, plate_number);
+
+  if (timeInUpperLimit) {
+    firestoreQuery = firestoreQuery.where('time_in', '<=', timeInUpperLimit);
+  }
+
+  if (lastVisible) {
+    if (operation == 'foward') {
+      firestoreQuery = firestoreQuery.startAfter(lastVisible);
+    } else if (operation == 'backward') {
+      firestoreQuery = firestoreQuery.endBefore(lastVisible);
+    } else {
+      return [];
+    }
+  }
+  const snapshot = await firestoreQuery.get();
+  const firstDocId = snapshot.docs.length > 0 ? snapshot.docs[0].id : null;
+  const lastDocId =
+    snapshot.docs.length > 0
+      ? snapshot.docs[snapshot.docs.length - 1].id
+      : null;
+  const results = snapshot.docs.map((doc) => ({
+    plateNumber: doc.id,
+    ...doc.data(),
+  }));
+
+  if (plateNumber) {
+    const foundResult = results.find(
+      (result) => result.plateNumber === plateNumber
+    );
+    return {
+      result: foundResult ? foundResult : null,
+      firstDocId,
+      lastDocId,
+    };
+  }
+
+  return {
+    results,
+    firstDocId,
+    lastDocId,
+  };
 };
 
-export { uploadPlatePicture, parkIn, parkOut, query };
+const updatePlate = async (
+  plateBefore: string,
+  plateAfter: string,
+  location: string
+) => {
+  const locationDataRef = db
+    .collection('location')
+    .doc(location)
+    .collection('in');
+  const prefUser = db.collection('user').doc(plateBefore);
+  const afterUser = db.collection('user').doc(plateAfter);
+
+  await db.runTransaction(async (transaction) => {
+    const docRef = locationDataRef.doc(plateBefore);
+    const docSnapshot = await transaction.get(docRef);
+
+    if (!docSnapshot.exists) {
+      console.log('a');
+      throw new Error('No document found with plateBefore.');
+    }
+
+    const prefUserDoc = await transaction.get(prefUser);
+    const prefUserData = prefUserDoc.data();
+
+    if (!prefUserData) {
+      throw new Error('No user data found for plateBefore.');
+    }
+
+    const currentlyIn = prefUserData.currently_in || [];
+
+    transaction.delete(docRef);
+
+    transaction.set(locationDataRef.doc(plateAfter), {
+      ...docSnapshot.data(),
+      plate: plateAfter,
+    });
+
+    transaction.update(prefUser, { currently_in: [] });
+    transaction.update(afterUser, { currently_in: currentlyIn });
+  });
+
+  console.log('Plate updated successfully.');
+};
+
+export { uploadPlatePicture, parkIn, parkOut, query, updatePlate };

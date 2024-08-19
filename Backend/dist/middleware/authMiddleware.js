@@ -19,4 +19,19 @@ const verifyTokenAdmin = (req, res, next) => {
         res.status(401).json({ message: 'Unauthorized' });
     }
 };
-exports.default = { verifyTokenAdmin };
+const verifyTokenUser = (req, res, next) => {
+    const token = req.headers['authorization'];
+    if (!token) {
+        res.status(403).json({ message: 'No token provided' });
+        return;
+    }
+    try {
+        const decoded = jwtUtils_1.default.verifyToken(token);
+        req.body.user = decoded;
+        next();
+    }
+    catch (err) {
+        res.status(401).json({ message: 'Unauthorized' });
+    }
+};
+exports.default = { verifyTokenAdmin, verifyTokenUser };

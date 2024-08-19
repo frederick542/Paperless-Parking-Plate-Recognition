@@ -68,6 +68,12 @@ const postImageToFastAPI = (file, operation, location) => __awaiter(void 0, void
             yield (0, parkManagementRepository_1.uploadPlatePicture)(file, destinationPath);
             text = yield (0, parkManagementRepository_1.parkOut)(destinationPath, location, license_plate);
         }
+        else if (operation == 'register') {
+            return {
+                status: 200,
+                data: { yourPlate: license_plate },
+            };
+        }
         return {
             status: 200,
             data: { message: text },

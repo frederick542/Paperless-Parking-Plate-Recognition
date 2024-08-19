@@ -30,13 +30,30 @@ const postPlate = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     }
 });
 const queryVehicle = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { plateNumber = '', timeIn = '', timeOut = '', lasstVisibleId = null } = req.body;
-    const location = req.body.location || req.body.user.location;
-    if (!location) {
-        res.status(400).send('please include required variblee.');
-        return;
+    const { plateNumber = '', timeInLowerLimit = '', timeInUpperLimit = '', lastVisibleId = null, operation = '', } = req.body;
+    try {
+        const location = req.body.user.location;
+        if (!location) {
+            res.status(400).send('please include required variblee.');
+            return;
+        }
+        const queryResult = yield (0, parkManagementRepository_1.query)(location, timeInLowerLimit, timeInUpperLimit, plateNumber, lastVisibleId, operation);
+        res.status(200).send(queryResult);
     }
-    const queryResult = yield (0, parkManagementRepository_1.query)(location, timeIn, timeOut, plateNumber, lasstVisibleId);
-    res.status(404).send('work succesfuly');
+    catch (error) {
+        res.status(401).json({ message: 'Invalid credentials' });
+    }
 });
-exports.default = { postPlate, queryVehicle };
+const changePlateNumber = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { plateBefore, plateAfter } = req.body;
+    const location = req.body.user.location;
+    try {
+        yield (0, parkManagementRepository_1.updatePlate)(plateBefore, plateAfter, location);
+        res.status(200).json({ message: 'Updated Succesfuly' });
+    }
+    catch (error) {
+        console.log(error);
+        res.status(400).json({ message: 'Check your input again' });
+    }
+});
+exports.default = { postPlate, queryVehicle, changePlateNumber };

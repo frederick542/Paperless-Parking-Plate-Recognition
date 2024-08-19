@@ -1,21 +1,22 @@
 import { Router } from 'express';
 import parkManagementController from '../controllers/parkManagementController';
 import authController from '../controllers/authController';
-import multer from 'multer';
 import authMiddleware from '../middleware/authMiddleware';
 
 const adminRoutes = Router();
-const upload = multer({ dest: 'uploads/cache/' });
-adminRoutes.post('/login', authController.login);
+
+adminRoutes.post('/login', authController.adminLogin);
+
 adminRoutes.post(
-  '/readPlate',
-  upload.single('file'),
-  parkManagementController.postPlate
-);
-adminRoutes.get(
   '/queryParking',
   authMiddleware.verifyTokenAdmin,
   parkManagementController.queryVehicle
+);
+
+adminRoutes.post(
+  '/changePlate',
+  authMiddleware.verifyTokenAdmin,
+  parkManagementController.changePlateNumber
 );
 
 export default adminRoutes;

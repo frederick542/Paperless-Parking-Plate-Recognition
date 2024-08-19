@@ -1,9 +1,11 @@
 import { Request, Response } from 'express';
 import { postImageToFastAPI } from '../services/plateService';
-import { query } from '../repositories/parkManagementRepository';
+import { query, updatePlate } from '../repositories/parkManagementRepository';
+
 const postPlate = async (req: Request, res: Response) => {
   const file = req.file;
   const { operation, location } = req.body;
+
   try {
     if (!file) {
       return res.status(400).send('No file uploaded.');
@@ -20,20 +22,43 @@ const postPlate = async (req: Request, res: Response) => {
 };
 
 const queryVehicle = async (req: Request, res: Response) => {
-  const { plateNumber = '', timeIn = '', timeOut = '', lasstVisibleId= null} = req.body;
-  const location = req.body.location || req.body.user.location;
-  if (!location) {
-    res.status(400).send('please include required variblee.');
-    return;
+  const {
+    plateNumber = '',
+    timeInLowerLimit = '',
+    timeInUpperLimit = '',
+    lastVisibleId = null,
+    operation = '',
+  } = req.body;
+  try {
+    const location = req.body.user.location;
+    if (!location) {
+      res.status(400).send('please include required variblee.');
+      return;
+    }
+    const queryResult = await query(
+      location,
+      timeInLowerLimit,
+      timeInUpperLimit,
+      plateNumber,
+      lastVisibleId,
+      operation
+    );
+    res.status(200).send(queryResult);
+  } catch (error) {
+    res.status(401).json({ message: 'Invalid credentials' });
   }
-  const queryResult = await query(
-    location,
-    timeIn,
-    timeOut,
-    plateNumber,
-    lasstVisibleId
-  );
-  res.status(404).send('work succesfuly');
 };
 
-export default { postPlate, queryVehicle };
+const changePlateNumber = async (req: Request, res: Response) => {
+  const { plateBefore, plateAfter } = req.body;
+  const location = req.body.user.location;
+  try {
+    await updatePlate(plateBefore, plateAfter, location);
+    res.status(200).json({ message: 'Updated Succesfuly' });
+  } catch (error) {
+    console.log(error)
+    res.status(400).json({ message: 'Check your input again' });
+  }
+};
+
+export default { postPlate, queryVehicle, changePlateNumber };

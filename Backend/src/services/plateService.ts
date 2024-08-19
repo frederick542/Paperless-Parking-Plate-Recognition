@@ -71,9 +71,14 @@ export const postImageToFastAPI = async (
           data: { message: 'no data in parked in' },
         };
       }
-      
+
       await uploadPlatePicture(file, destinationPath);
       text = await parkOut(destinationPath, location, license_plate);
+    } else if (operation == 'register') {
+      return {
+        status: 200,
+        data: { yourPlate: license_plate },
+      };
     }
     return {
       status: 200,

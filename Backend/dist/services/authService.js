@@ -12,11 +12,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.loginAdmin = void 0;
+exports.handleUserRegister = exports.handleUserLogin = exports.handleAdminLogin = void 0;
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const jwtUtils_1 = __importDefault(require("../utils/jwtUtils"));
 const authRepository_1 = require("../repositories/authRepository");
-const loginAdmin = (username, password) => __awaiter(void 0, void 0, void 0, function* () {
+const console_1 = require("console");
+const handleAdminLogin = (username, password) => __awaiter(void 0, void 0, void 0, function* () {
     const admin = yield (0, authRepository_1.getAdminByUsername)(username);
     if (!admin) {
         throw new Error('Invalid username or password');
@@ -35,4 +36,31 @@ const loginAdmin = (username, password) => __awaiter(void 0, void 0, void 0, fun
         location: admin.location,
     };
 });
-exports.loginAdmin = loginAdmin;
+exports.handleAdminLogin = handleAdminLogin;
+const handleUserLogin = (plate, password) => __awaiter(void 0, void 0, void 0, function* () {
+    const user = yield (0, authRepository_1.getUserByPlate)(plate);
+    if (!user) {
+        throw new Error('Invalid username or password');
+    }
+    const isMatch = yield bcryptjs_1.default.compare(password, user.password);
+    if (!isMatch) {
+        throw new Error('Invalid username or password');
+    }
+    const userPayload = {
+        plate: user.id,
+        username: user.name,
+    };
+    const token = jwtUtils_1.default.generateToken(userPayload);
+    return {
+        token: token,
+        username: user.name
+    };
+});
+exports.handleUserLogin = handleUserLogin;
+const handleUserRegister = (username, password, plate) => __awaiter(void 0, void 0, void 0, function* () {
+    if (yield (0, authRepository_1.checkUserAvailability)(plate)) {
+        throw console_1.error;
+    }
+    (0, authRepository_1.registerUser)(username, password, plate);
+});
+exports.handleUserRegister = handleUserRegister;
