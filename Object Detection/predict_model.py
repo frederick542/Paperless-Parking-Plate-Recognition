@@ -23,11 +23,11 @@ class YOLOModel:
 
         license_plates = self.extract_license_plates(np.array(image)[..., ::-1], detections)
         if not license_plates:
-            return {"error": "No license plates detected"}
+            return "No license plates detected"
 
         nearest_license_plate = max(license_plates, key=lambda x: x[1])
         processed_text = self.process_license_plate(nearest_license_plate[0])
-        return {"license_plate": processed_text}
+        return  processed_text
 
 
     def extract_license_plates(self, image, detections):

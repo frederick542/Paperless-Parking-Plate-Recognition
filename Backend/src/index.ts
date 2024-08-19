@@ -1,12 +1,15 @@
-const express = require('express')
-const app = express()
-const port = 3000
+import dotenv from 'dotenv';
+dotenv.config();
 
-app.get('/', (req, res) => {
-  res.send('Hello World!')
-})
+import express from 'express';
+import adminRoutes from './routes/adminRoutes';
+
+const port = 3000;
+const app = express();
+
+app.use(express.json());
+app.use('/admin', adminRoutes);
 
 app.listen(port, () => {
-  const host = 'localhost';
-  console.log(`Example app listening at http://${host}:${port}`);
-})
+  console.log(`now listening on localhost:${port}`);
+});

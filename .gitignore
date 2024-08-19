@@ -1,3 +1,5 @@
 node_modules/
 .env
 datasets/
+uploads/
+serviceAccountKey.json
