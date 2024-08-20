@@ -23,9 +23,9 @@ const handlePaymentStatus = (plate) => __awaiter(void 0, void 0, void 0, functio
     return null;
 });
 exports.handlePaymentStatus = handlePaymentStatus;
-const handlePayment = (plate) => __awaiter(void 0, void 0, void 0, function* () {
+const handlePayment = (plate, paid) => __awaiter(void 0, void 0, void 0, function* () {
     if (!(yield (0, userRepository_1.getPaymentStatusData)(plate))) {
-        return yield (0, userRepository_1.paid)(plate);
+        return yield (0, userRepository_1.payBills)(plate, paid);
     }
     return null;
 });

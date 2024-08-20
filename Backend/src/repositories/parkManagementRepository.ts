@@ -54,28 +54,30 @@ const parkOut = async (
     db.collection('user').doc(plateNumber).get(),
     db.collection('location').doc(location).get(),
   ]);
+  const userDocData = userDocSnap.data();
+  const locationDocData = locationDocSnap.data();
 
-  if (!userDocSnap.exists || !locationDocSnap.exists) {
+  if (!userDocSnap.exists || !locationDocSnap.exists || !userDocData || !locationDocData) {
     console.log('No such document!');
     return 'No such document!';
   }
 
-  const paidPerHour = locationDocSnap.data()?.paid_per_hour || 0;
-  const paidStatus = userDocSnap.data()?.paidStatus || false;
-  const time_in = new Date(userDocSnap.data()?.currently_in[1]);
+  const paidStatus = userDocData.paidStatus || false;
+  const time_in = new Date(userDocData.currently_in[1]);
   const time_out = new Date();
-
-  if (!paidStatus) {
-    return 'Not paid, cannot proceed with park out';
+  const minutesElapsed =
+    (new Date().getTime() - new Date(time_in).getTime()) / (1000 * 60);
+  if (locationDocData.free_on_minutes < minutesElapsed) {
+    if (!paidStatus) {
+      return 'Not paid, cannot proceed with park out';
+    }
   }
 
   if (!time_in) {
     return 'No valid time_in!';
   }
 
-  const minutesElapsed =
-    (time_out.getTime() - time_in.getTime()) / (1000 * 60);
-  const amountDue = paidPerHour * minutesElapsed;
+  const amountDue = userDocData.currently_in[2];
 
   const userDocRefHistory = userDocSnap.ref
     .collection('history')
@@ -206,7 +208,6 @@ const updatePlate = async (
     const docSnapshot = await transaction.get(docRef);
 
     if (!docSnapshot.exists) {
-      console.log('a');
       throw new Error('No document found with plateBefore.');
     }
 

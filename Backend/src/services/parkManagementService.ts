@@ -5,6 +5,8 @@ import { getFilePath, deleteFile } from '../utils/fileManagementUtils';
 import {
   parkIn,
   parkOut,
+  query,
+  updatePlate,
   uploadPlatePicture,
 } from '../repositories/parkManagementRepository';
 import { v4 as uuidv4 } from 'uuid';
@@ -15,7 +17,7 @@ import {
 
 const FASTAPI_URL = process.env.FASTAPI_URL || '';
 
-export const postImageToFastAPI = async (
+const postImageToFastAPI = async (
   file: Express.Multer.File,
   operation: string,
   location: string
@@ -52,15 +54,15 @@ export const postImageToFastAPI = async (
     }
 
     const license_plate = data.license_plate;
-    
+
     if (!(await checkVehicleRegistered(license_plate))) {
       return {
         status: 401,
         data: { message: 'Account does not exist' },
       };
     }
-    
-    let text: string = 'File uploaded and Firestore updated successfully'
+
+    let text: string = 'File uploaded and Firestore updated successfully';
     if (operation == 'in') {
       await uploadPlatePicture(file, destinationPath);
       await parkIn(destinationPath, location, license_plate);
@@ -94,3 +96,53 @@ export const postImageToFastAPI = async (
     deleteFile(filePath);
   }
 };
+
+const handleQueryVehicle = async (
+  plateNumber: string,
+  timeInLowerLimit: Date,
+  timeInUpperLimit: Date,
+  lastVisibleId: string,
+  operation: string,
+  location: string
+) => {
+  try {
+    const queryResult = await query(
+      location,
+      timeInLowerLimit,
+      timeInUpperLimit,
+      plateNumber,
+      lastVisibleId,
+      operation
+    );
+    return {
+      status: 200,
+      result: queryResult,
+    };
+  } catch (error) {
+    return {
+      status: 401,
+      result: 'Invalid credentials',
+    };
+  }
+};
+
+const handleChangePlateNumber = async (
+  plateBefore: string,
+  plateAfter: string,
+  location: string
+) => {
+  try {
+    await updatePlate(plateBefore, plateAfter, location);
+    return {
+      status: 200,
+      message: 'Updated Succesfuly',
+    };
+  } catch (error) {
+    return {
+      status: 400,
+      message: 'Check your input again',
+    };
+  }
+};
+
+export { postImageToFastAPI, handleQueryVehicle, handleChangePlateNumber };

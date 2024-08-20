@@ -2,7 +2,7 @@ import {
   getHistoryData,
   getPaymentData,
   getPaymentStatusData,
-  paid,
+  payBills,
 } from '../repositories/userRepository';
 
 const maxHistory = 10;
@@ -18,9 +18,9 @@ const handlePaymentStatus = async (plate: string) => {
   return null;
 };
 
-const handlePayment = async (plate: string) => {
+const handlePayment = async (plate: string, paid: number) => {
   if (!(await getPaymentStatusData(plate))) {
-    return await paid(plate);
+    return await payBills(plate, paid);
   }
   return null;
 };

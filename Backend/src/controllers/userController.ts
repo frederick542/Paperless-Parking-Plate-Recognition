@@ -31,12 +31,15 @@ const getPaymentStatus = async (req: Request, res: Response) => {
 };
 
 const pay = async (req: Request, res: Response) => {
-  const { user } = req.body;
+  const { user, paid } = req.body;
   let data;
+  if (!user || !paid) {
+    return res.status(400).send('Bad Request');
+  }
   try {
-    data = await handlePayment(user.plate);
+    data = await handlePayment(user.plate, paid);
     if (!data) {
-      return res.status(200).send('alreadyPaid');
+      return res.status(200).send('Currently not in any places');
     }
   } catch (error) {
     return res.status(404).send('No data found');

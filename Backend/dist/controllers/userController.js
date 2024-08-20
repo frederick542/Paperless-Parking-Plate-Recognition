@@ -36,12 +36,15 @@ const getPaymentStatus = (req, res) => __awaiter(void 0, void 0, void 0, functio
     res.status(200).send(data);
 });
 const pay = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { user } = req.body;
+    const { user, paid } = req.body;
     let data;
+    if (!user || !paid) {
+        return res.status(400).send('Bad Request');
+    }
     try {
-        data = yield (0, userService_1.handlePayment)(user.plate);
+        data = yield (0, userService_1.handlePayment)(user.plate, paid);
         if (!data) {
-            return res.status(200).send('alreadyPaid');
+            return res.status(200).send('Currently not in any places');
         }
     }
     catch (error) {

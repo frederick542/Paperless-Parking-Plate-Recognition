@@ -45,29 +45,31 @@ const parkIn = (destinationPath, location, plateNumber) => __awaiter(void 0, voi
 });
 exports.parkIn = parkIn;
 const parkOut = (destinationPath, location, plateNumber) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b, _c;
     const imageUrl = yield (0, firebaseConfig_1.getUrl)(destinationPath);
     const currentDate = new Date().toISOString();
     const [userDocSnap, locationDocSnap] = yield Promise.all([
         firebaseConfig_1.db.collection('user').doc(plateNumber).get(),
         firebaseConfig_1.db.collection('location').doc(location).get(),
     ]);
-    if (!userDocSnap.exists || !locationDocSnap.exists) {
+    const userDocData = userDocSnap.data();
+    const locationDocData = locationDocSnap.data();
+    if (!userDocSnap.exists || !locationDocSnap.exists || !userDocData || !locationDocData) {
         console.log('No such document!');
         return 'No such document!';
     }
-    const paidPerHour = ((_a = locationDocSnap.data()) === null || _a === void 0 ? void 0 : _a.paid_per_hour) || 0;
-    const paidStatus = ((_b = userDocSnap.data()) === null || _b === void 0 ? void 0 : _b.paidStatus) || false;
-    const time_in = new Date((_c = userDocSnap.data()) === null || _c === void 0 ? void 0 : _c.currently_in[1]);
+    const paidStatus = userDocData.paidStatus || false;
+    const time_in = new Date(userDocData.currently_in[1]);
     const time_out = new Date();
-    if (!paidStatus) {
-        return 'Not paid, cannot proceed with park out';
+    const minutesElapsed = (new Date().getTime() - new Date(time_in).getTime()) / (1000 * 60);
+    if (locationDocData.free_on_minutes < minutesElapsed) {
+        if (!paidStatus) {
+            return 'Not paid, cannot proceed with park out';
+        }
     }
     if (!time_in) {
         return 'No valid time_in!';
     }
-    const minutesElapsed = (time_out.getTime() - time_in.getTime()) / (1000 * 60);
-    const amountDue = paidPerHour * minutesElapsed;
+    const amountDue = userDocData.currently_in[2];
     const userDocRefHistory = userDocSnap.ref
         .collection('history')
         .doc(currentDate);
@@ -171,7 +173,6 @@ const updatePlate = (plateBefore, plateAfter, location) => __awaiter(void 0, voi
         const docRef = locationDataRef.doc(plateBefore);
         const docSnapshot = yield transaction.get(docRef);
         if (!docSnapshot.exists) {
-            console.log('a');
             throw new Error('No document found with plateBefore.');
         }
         const prefUserDoc = yield transaction.get(prefUser);

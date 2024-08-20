@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.paid = exports.getPaymentData = exports.getPaymentStatusData = exports.getHistoryData = void 0;
+exports.payBills = exports.getPaymentData = exports.getPaymentStatusData = exports.getHistoryData = void 0;
 const firebaseConfig_1 = require("../config/firebaseConfig");
 const getHistoryData = (plate, limit) => __awaiter(void 0, void 0, void 0, function* () {
     const firestoreHistoryRef = firebaseConfig_1.db
@@ -59,11 +59,14 @@ const getPaymentData = (plate) => __awaiter(void 0, void 0, void 0, function* ()
         if (!locationData) {
             return null;
         }
-        const minutesElapsed = (new Date().getTime() - new Date(paymentStatusData[1]).getTime()) /
-            (1000 * 60);
-        const amountDue = locationData.paid_per_hour * minutesElapsed;
+        const minutesElapsed = Math.round((new Date().getTime() - new Date(paymentStatusData[1]).getTime()) /
+            (1000 * 60));
+        let amountDue = 0;
+        if (locationData.free_on_minutes < minutesElapsed) {
+            amountDue = locationData.paid_per_hour * minutesElapsed;
+        }
         return {
-            lcoation: paymentStatusData[0],
+            location: paymentStatusData[0],
             time_in: paymentStatusData[1],
             incoming_paid: amountDue,
         };
@@ -73,11 +76,20 @@ const getPaymentData = (plate) => __awaiter(void 0, void 0, void 0, function* ()
     }
 });
 exports.getPaymentData = getPaymentData;
-const paid = (plate) => __awaiter(void 0, void 0, void 0, function* () {
+const payBills = (plate, paid) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const userDocRef = firebaseConfig_1.db.collection('user').doc(plate);
+        const userDoc = yield userDocRef.get();
+        if (!userDoc.exists) {
+            console.error(`Document for plate ${plate} does not exist.`);
+            return false;
+        }
+        const userData = userDoc.data();
+        const currentlyInArray = (userData === null || userData === void 0 ? void 0 : userData.currently_in) || [];
+        currentlyInArray[2] = paid;
         userDocRef.update({
-            paidStatus: true
+            currently_in: currentlyInArray,
+            paidStatus: true,
         });
         return true;
     }
@@ -85,4 +97,4 @@ const paid = (plate) => __awaiter(void 0, void 0, void 0, function* () {
         return null;
     }
 });
-exports.paid = paid;
+exports.payBills = payBills;

@@ -34,7 +34,7 @@ const getPaymentStatusData = async (plate: string) => {
     }
 
     const paymentStatusData = userData.paidStatus;
-    
+
     return paymentStatusData;
   } catch (error) {
     return null;
@@ -44,9 +44,7 @@ const getPaymentStatusData = async (plate: string) => {
 const getPaymentData = async (plate: string) => {
   try {
     const userDocRef = db.collection('user').doc(plate);
-
     const docSnapshot = await userDocRef.get();
-
     const userData = docSnapshot.data();
     if (!userData) {
       return null;
@@ -58,12 +56,17 @@ const getPaymentData = async (plate: string) => {
     if (!locationData) {
       return null;
     }
-    const minutesElapsed =
+
+    const minutesElapsed = Math.round(
       (new Date().getTime() - new Date(paymentStatusData[1]).getTime()) /
-      (1000 * 60);
-    const amountDue = locationData.paid_per_hour * minutesElapsed;
+        (1000 * 60)
+    );
+    let amountDue = 0;
+    if (locationData.free_on_minutes < minutesElapsed) {
+      amountDue = locationData.paid_per_hour * minutesElapsed;
+    }
     return {
-      lcoation: paymentStatusData[0],
+      location: paymentStatusData[0],
       time_in: paymentStatusData[1],
       incoming_paid: amountDue,
     };
@@ -72,17 +75,27 @@ const getPaymentData = async (plate: string) => {
   }
 };
 
-const paid = async (plate: string) => {
+const payBills = async (plate: string, paid: number) => {
   try {
     const userDocRef = db.collection('user').doc(plate);
+    const userDoc = await userDocRef.get();
 
+    if (!userDoc.exists) {
+      console.error(`Document for plate ${plate} does not exist.`);
+      return false;
+    }
+
+    const userData = userDoc.data();
+    const currentlyInArray = userData?.currently_in || [];
+    currentlyInArray[2] = paid;
     userDocRef.update({
-      paidStatus:true
+      currently_in: currentlyInArray,
+      paidStatus: true,
     });
-    return true
+    return true;
   } catch (error) {
     return null;
   }
 };
 
-export { getHistoryData, getPaymentStatusData, getPaymentData, paid };
+export { getHistoryData, getPaymentStatusData, getPaymentData, payBills };
