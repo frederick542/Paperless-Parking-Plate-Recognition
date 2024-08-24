@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updatePlate = exports.query = exports.parkOut = exports.parkIn = exports.uploadPlatePicture = void 0;
+exports.monitorDefault = exports.updatePlate = exports.monitorQuery = exports.parkOut = exports.parkIn = exports.uploadPlatePicture = void 0;
 const firebaseConfig_1 = require("../config/firebaseConfig");
 const uploadPlatePicture = (file, destinationPath) => __awaiter(void 0, void 0, void 0, function* () {
     try {
@@ -53,7 +53,10 @@ const parkOut = (destinationPath, location, plateNumber) => __awaiter(void 0, vo
     ]);
     const userDocData = userDocSnap.data();
     const locationDocData = locationDocSnap.data();
-    if (!userDocSnap.exists || !locationDocSnap.exists || !userDocData || !locationDocData) {
+    if (!userDocSnap.exists ||
+        !locationDocSnap.exists ||
+        !userDocData ||
+        !locationDocData) {
         console.log('No such document!');
         return 'No such document!';
     }
@@ -108,60 +111,6 @@ const parkOut = (destinationPath, location, plateNumber) => __awaiter(void 0, vo
     return 'File uploaded and Succesfuly get out';
 });
 exports.parkOut = parkOut;
-const pageSize = 10;
-const query = (location_1, timeInLowerLimit_1, timeInUpperLimit_1, ...args_1) => __awaiter(void 0, [location_1, timeInLowerLimit_1, timeInUpperLimit_1, ...args_1], void 0, function* (location, timeInLowerLimit, timeInUpperLimit, plateNumber = '', lastVisibleId, operation) {
-    let lastVisible = lastVisibleId
-        ? yield firebaseConfig_1.db
-            .collection('location')
-            .doc(location)
-            .collection('in')
-            .doc(lastVisibleId)
-            .get()
-        : null;
-    let firestoreQuery = firebaseConfig_1.db
-        .collection('location')
-        .doc(location)
-        .collection('in')
-        .orderBy('time_in')
-        .limit(pageSize);
-    if (timeInLowerLimit) {
-        firestoreQuery = firestoreQuery.where('time_in', '>=', timeInLowerLimit);
-    }
-    if (timeInUpperLimit) {
-        firestoreQuery = firestoreQuery.where('time_in', '<=', timeInUpperLimit);
-    }
-    if (lastVisible) {
-        if (operation == 'foward') {
-            firestoreQuery = firestoreQuery.startAfter(lastVisible);
-        }
-        else if (operation == 'backward') {
-            firestoreQuery = firestoreQuery.endBefore(lastVisible);
-        }
-        else {
-            return [];
-        }
-    }
-    const snapshot = yield firestoreQuery.get();
-    const firstDocId = snapshot.docs.length > 0 ? snapshot.docs[0].id : null;
-    const lastDocId = snapshot.docs.length > 0
-        ? snapshot.docs[snapshot.docs.length - 1].id
-        : null;
-    const results = snapshot.docs.map((doc) => (Object.assign({ plateNumber: doc.id }, doc.data())));
-    if (plateNumber) {
-        const foundResult = results.find((result) => result.plateNumber === plateNumber);
-        return {
-            result: foundResult ? foundResult : null,
-            firstDocId,
-            lastDocId,
-        };
-    }
-    return {
-        results,
-        firstDocId,
-        lastDocId,
-    };
-});
-exports.query = query;
 const updatePlate = (plateBefore, plateAfter, location) => __awaiter(void 0, void 0, void 0, function* () {
     const locationDataRef = firebaseConfig_1.db
         .collection('location')
@@ -189,3 +138,88 @@ const updatePlate = (plateBefore, plateAfter, location) => __awaiter(void 0, voi
     console.log('Plate updated successfully.');
 });
 exports.updatePlate = updatePlate;
+const monitorDefault = (firestoreQuery, ws) => {
+    firestoreQuery.onSnapshot((snapshot) => {
+        snapshot.docChanges().forEach((change) => {
+            if (change.type === 'modified') {
+                const vehicleData = change.doc;
+                ws.send(JSON.stringify({
+                    data: Object.assign({ plateNumber: vehicleData.id }, vehicleData.data()),
+                    type: 'update',
+                }));
+            }
+            else if (change.type === 'added' || change.type === 'removed') {
+                const initialData = snapshot.docs.map((doc) => (Object.assign({ plateNumber: doc.id }, doc.data())));
+                ws.send(JSON.stringify({
+                    type: 'add/remove',
+                    data: initialData,
+                }));
+            }
+        });
+    });
+};
+exports.monitorDefault = monitorDefault;
+const monitorQuery = (ws_1, firestoreQuery_1, location_1, timeInLowerLimit_1, timeInUpperLimit_1, ...args_1) => __awaiter(void 0, [ws_1, firestoreQuery_1, location_1, timeInLowerLimit_1, timeInUpperLimit_1, ...args_1], void 0, function* (ws, firestoreQuery, location, timeInLowerLimit, timeInUpperLimit, plateNumber = '', lastVisibleId = '', operation) {
+    let lastVisible = lastVisibleId
+        ? yield firebaseConfig_1.db
+            .collection('location')
+            .doc(location)
+            .collection('in')
+            .doc(lastVisibleId)
+            .get()
+        : null;
+    if (timeInLowerLimit) {
+        firestoreQuery = firestoreQuery.where('time_in', '>=', timeInLowerLimit);
+    }
+    if (timeInUpperLimit) {
+        firestoreQuery = firestoreQuery.where('time_in', '<=', timeInUpperLimit);
+    }
+    if (lastVisible) {
+        if (operation == 'foward') {
+            firestoreQuery = firestoreQuery.startAfter(lastVisible);
+        }
+        else if (operation == 'backward') {
+            firestoreQuery = firestoreQuery.endBefore(lastVisible);
+        }
+        else {
+            ws.send([]);
+        }
+    }
+    firestoreQuery.onSnapshot((snapshot) => {
+        if (snapshot.empty) {
+            ws.send([]);
+        }
+        snapshot.docChanges().forEach((change) => {
+            const firstDocId = snapshot.docs.length > 0 ? snapshot.docs[0].id : null;
+            const lastDocId = snapshot.docs.length > 0
+                ? snapshot.docs[snapshot.docs.length - 1].id
+                : null;
+            if (change.type === 'modified') {
+                const vehicleData = change.doc;
+                if (plateNumber) {
+                    if (!plateNumber || vehicleData.id === plateNumber) {
+                        ws.send(JSON.stringify({
+                            data: Object.assign({ plateNumber: vehicleData.id }, vehicleData.data()),
+                            type: 'update',
+                            firstDocId,
+                            lastDocId,
+                        }));
+                    }
+                }
+            }
+            else if (change.type === 'added' || change.type === 'removed') {
+                const initialData = snapshot.docs.map((doc) => {
+                    if (!plateNumber || doc.id === plateNumber)
+                        return Object.assign({ plateNumber: doc.id }, doc.data());
+                });
+                ws.send(JSON.stringify({
+                    type: 'add/remove',
+                    data: initialData,
+                    firstDocId,
+                    lastDocId,
+                }));
+            }
+        });
+    });
+});
+exports.monitorQuery = monitorQuery;

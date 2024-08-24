@@ -7,15 +7,23 @@ const USER_COLLECTION = 'user';
 const ADMIN_COLLECTION = 'admin';
 
 const getAdminByUsername = async (username: string) => {
-  const doc = await db.collection(ADMIN_COLLECTION).doc(username).get();
-  if (!doc.exists) return null;
-  return { id: doc.id, ...(doc.data() as Admin) };
+  try {
+    const doc = await db.collection(ADMIN_COLLECTION).doc(username).get();
+    if (!doc.exists) return null;
+    return { id: doc.id, ...(doc.data() as Admin) };
+  } catch (error) {
+    return null;
+  }
 };
 
 const getUserByPlate = async (plate: string) => {
-  const doc = await db.collection(USER_COLLECTION).doc(plate).get();
-  if (!doc.exists) return null;
-  return { id: doc.id, ...(doc.data() as User) };
+  try {
+    const doc = await db.collection(USER_COLLECTION).doc(plate).get();
+    if (!doc.exists) return null;
+    return { id: doc.id, ...(doc.data() as User) };
+  } catch (error) {
+    return null;
+  }
 };
 
 const checkVehicleRegistered = async (license_plate: string) => {
@@ -49,7 +57,7 @@ const registerUser = async (
   await DocRef.set({
     name: username,
     password: await bcrypt.hash(password, 10),
-    paidStatus: false
+    paidStatus: false,
   });
 };
 

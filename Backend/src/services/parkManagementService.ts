@@ -2,10 +2,12 @@ import axios from 'axios';
 import FormData from 'form-data';
 import fs from 'fs';
 import { getFilePath, deleteFile } from '../utils/fileManagementUtils';
+import WebSocket from 'ws';
 import {
+  monitorDefault,
+  monitorQuery,
   parkIn,
   parkOut,
-  query,
   updatePlate,
   uploadPlatePicture,
 } from '../repositories/parkManagementRepository';
@@ -14,6 +16,8 @@ import {
   checkVehicleIn,
   checkVehicleRegistered,
 } from '../repositories/authRepository';
+import { db } from '../config/firebaseConfig';
+import { queryPayload } from '../model/queryPayloadInterface';
 
 const FASTAPI_URL = process.env.FASTAPI_URL || '';
 
@@ -26,7 +30,6 @@ const postImageToFastAPI = async (
   const filePath = getFilePath(file.path);
   const uniqueFileName = `${uuidv4()}_${file.originalname}`;
   const destinationPath = `${location}/${operation}/${uniqueFileName}`;
-
   form.append('file', fs.createReadStream(filePath), {
     filename: file.originalname,
     contentType: file.mimetype,
@@ -97,35 +100,6 @@ const postImageToFastAPI = async (
   }
 };
 
-const handleQueryVehicle = async (
-  plateNumber: string,
-  timeInLowerLimit: Date,
-  timeInUpperLimit: Date,
-  lastVisibleId: string,
-  operation: string,
-  location: string
-) => {
-  try {
-    const queryResult = await query(
-      location,
-      timeInLowerLimit,
-      timeInUpperLimit,
-      plateNumber,
-      lastVisibleId,
-      operation
-    );
-    return {
-      status: 200,
-      result: queryResult,
-    };
-  } catch (error) {
-    return {
-      status: 401,
-      result: 'Invalid credentials',
-    };
-  }
-};
-
 const handleChangePlateNumber = async (
   plateBefore: string,
   plateAfter: string,
@@ -145,4 +119,46 @@ const handleChangePlateNumber = async (
   }
 };
 
-export { postImageToFastAPI, handleQueryVehicle, handleChangePlateNumber };
+const pageSize = 100;
+const handleMonitorRealTimeData = async (
+  ws: WebSocket,
+  location: string,
+  data: queryPayload
+) => {
+  const type: string = data.type;
+  if (type == 'default') {
+    const vehiclesRef = db
+      .collection('location')
+      .doc(location)
+      .collection('in')
+      .orderBy('time_in', 'desc')
+      .limit(100);
+
+    monitorDefault(vehiclesRef, ws);
+  } else if (type == 'query') {
+    const vehiclesRefQuery = db
+      .collection('location')
+      .doc(location)
+      .collection('in')
+      .orderBy('time_in', 'desc')
+      .limit(100);
+    monitorQuery(
+      ws,
+      vehiclesRefQuery,
+      location,
+      data.payload.timeInLowerLimit,
+      data.payload.timeInUpperLimit,
+      data.payload.plateNumber,
+      data.payload.lastVisibleId,
+      data.payload.operation
+    );
+  } else {
+    ws.send([]);
+  }
+};
+
+export {
+  postImageToFastAPI,
+  handleChangePlateNumber,
+  handleMonitorRealTimeData,
+};

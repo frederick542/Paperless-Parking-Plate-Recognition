@@ -28,20 +28,13 @@ const postPlate = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         res.status(500).send('An error occurred while uploading the image.');
     }
 });
-const queryVehicle = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { plateNumber = '', timeInLowerLimit = '', timeInUpperLimit = '', lastVisibleId = null, operation = '', } = req.body;
-    const location = req.body.user.location;
-    if (!location) {
-        res.status(400).send('please include required variblee.');
-        return;
-    }
-    const result = yield (0, parkManagementService_1.handleQueryVehicle)(plateNumber, timeInLowerLimit, timeInUpperLimit, lastVisibleId, operation, operation);
-    res.status(result.status).send(result.result);
-});
 const changePlateNumber = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { plateBefore, plateAfter } = req.body;
     const location = req.body.user.location;
     const result = yield (0, parkManagementService_1.handleChangePlateNumber)(plateBefore, plateAfter, location);
     res.status(result.status).json(result.message);
 });
-exports.default = { postPlate, queryVehicle, changePlateNumber };
+exports.default = {
+    postPlate,
+    changePlateNumber,
+};

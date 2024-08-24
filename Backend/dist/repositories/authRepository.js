@@ -18,17 +18,27 @@ const firebaseConfig_1 = require("../config/firebaseConfig");
 const USER_COLLECTION = 'user';
 const ADMIN_COLLECTION = 'admin';
 const getAdminByUsername = (username) => __awaiter(void 0, void 0, void 0, function* () {
-    const doc = yield firebaseConfig_1.db.collection(ADMIN_COLLECTION).doc(username).get();
-    if (!doc.exists)
+    try {
+        const doc = yield firebaseConfig_1.db.collection(ADMIN_COLLECTION).doc(username).get();
+        if (!doc.exists)
+            return null;
+        return Object.assign({ id: doc.id }, doc.data());
+    }
+    catch (error) {
         return null;
-    return Object.assign({ id: doc.id }, doc.data());
+    }
 });
 exports.getAdminByUsername = getAdminByUsername;
 const getUserByPlate = (plate) => __awaiter(void 0, void 0, void 0, function* () {
-    const doc = yield firebaseConfig_1.db.collection(USER_COLLECTION).doc(plate).get();
-    if (!doc.exists)
+    try {
+        const doc = yield firebaseConfig_1.db.collection(USER_COLLECTION).doc(plate).get();
+        if (!doc.exists)
+            return null;
+        return Object.assign({ id: doc.id }, doc.data());
+    }
+    catch (error) {
         return null;
-    return Object.assign({ id: doc.id }, doc.data());
+    }
 });
 exports.getUserByPlate = getUserByPlate;
 const checkVehicleRegistered = (license_plate) => __awaiter(void 0, void 0, void 0, function* () {
@@ -58,7 +68,7 @@ const registerUser = (username, password, license_plate) => __awaiter(void 0, vo
     yield DocRef.set({
         name: username,
         password: yield bcryptjs_1.default.hash(password, 10),
-        paidStatus: false
+        paidStatus: false,
     });
 });
 exports.registerUser = registerUser;

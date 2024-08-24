@@ -14,7 +14,11 @@ const adminLogin = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     const { username, password } = req.body;
     try {
         const token = yield (0, authService_1.handleAdminLogin)(username, password);
-        res.json(token);
+        res.cookie('token', JSON.stringify(token), {
+            httpOnly: true,
+            maxAge: 86400000,
+        });
+        res.status(200).json();
     }
     catch (error) {
         if (error.message === 'Invalid username or password') {
@@ -29,7 +33,12 @@ const userLogin = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { plate, password } = req.body;
     try {
         const token = yield (0, authService_1.handleUserLogin)(plate, password);
-        res.json(token);
+        res.cookie('token', JSON.stringify(token), {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            maxAge: 3600000,
+        });
+        res.status(200).json({ status: 200 });
     }
     catch (error) {
         if (error.message === 'Invalid username or password') {

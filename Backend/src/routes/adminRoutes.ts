@@ -8,15 +8,10 @@ const adminRoutes = Router();
 adminRoutes.post('/login', authController.adminLogin);
 
 adminRoutes.post(
-  '/queryParking',
-  authMiddleware.verifyTokenAdmin,
-  parkManagementController.queryVehicle
-);
-
-adminRoutes.post(
   '/changePlate',
   authMiddleware.verifyTokenAdmin,
   parkManagementController.changePlateNumber
 );
+adminRoutes.post('/verifyCookie', authMiddleware.verifyCookie);
 
 export default adminRoutes;

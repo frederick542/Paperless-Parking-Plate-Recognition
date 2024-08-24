@@ -1,0 +1,27 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  width: 9%;
+  height: 50%;
+  margin-top: 0;
+}
+.filler {
+  margin: 0;
+  font-size: 0.8rem;
+  color: transparent;
+  user-select: none;
+}
+
+.button {
+  width: 100%;
+  font-size: 1rem;
+  background-color: #40e0d0;
+  color: white;
+  border-radius: 16px;
+  height: 2rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}

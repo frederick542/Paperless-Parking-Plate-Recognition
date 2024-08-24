@@ -30,7 +30,7 @@ const handleAdminLogin = async (
 
   const token = jwtUtils.generateToken(adminPayload);
   return {
-    token: token,
+    tokenVal: token,
     location: admin.location,
   };
 };

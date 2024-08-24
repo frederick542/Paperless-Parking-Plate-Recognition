@@ -7,8 +7,8 @@
     "build": "rimraf dist && npx tsc",
     "prestart": "npm run build",
     "start": "nodemon dist/index.js",
-    "predev": "rimraf \"uploads/cache/\" && npm run build",
-    "dev": "concurrently \"npx tsc -w\" \"nodemon dist/index.js\""
+    "preserver": "rimraf \"uploads/cache/\" && npm run build",
+    "server": "concurrently \"npx tsc -w\" \"nodemon dist/index.js\""
   },
   "keywords": [],
   "author": "",
@@ -19,6 +19,8 @@
     "axios": "^1.7.4",
     "bcrypt": "^5.1.1",
     "bcryptjs": "^2.4.3",
+    "cookie-parser": "^1.4.6",
+    "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "firebase": "^10.13.0",
@@ -27,12 +29,17 @@
     "jsonwebtoken": "^9.0.2",
     "multer": "^1.4.5-lts.1",
     "rimraf": "^6.0.1",
-    "typescript": "^5.5.4"
+    "typescript": "^5.5.4",
+    "ws": "^8.18.0"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
+    "@types/cookie": "^0.6.0",
+    "@types/cookie-parser": "^1.4.7",
+    "@types/cors": "^2.8.17",
     "@types/multer": "^1.4.11",
     "@types/uuid": "^10.0.0",
+    "@types/ws": "^8.5.12",
     "concurrently": "^8.2.2",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-prettier": "^5.2.1",

@@ -1,0 +1,119 @@
+.container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 80%;
+  max-width: 459px;
+  aspect-ratio: 459 / 417;
+  background-color: transparent;
+  align-items: center;
+  z-index: 1;
+  overflow: hidden;
+  border-radius: 16px;
+}
+
+.headerBackground {
+  width: 80%;
+  max-width: 419px;
+  max-height: 153px;
+  aspect-ratio: 419 / 153;
+  background-color: #40e0d0;
+  border-radius: 16px;
+  z-index: 2;
+  overflow: visible;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 8%;
+  position: relative;
+}
+
+.headerBackground .title {
+  font-size: 16px;
+  font-weight: bold;
+  letter-spacing: 2px;
+  color: white;
+}
+
+.background {
+  aspect-ratio: 419 / 413;
+  width: 100%;
+  max-width: 459px;
+  height: auto;
+  max-height: 413px;
+  background-color: white;
+  border-radius: 16px;
+  z-index: 1;
+  position: absolute;
+  top: 10%;
+}
+
+.errorMessage {
+  position: absolute;
+  top: 102%;
+  font-size: 12px;
+  font-weight: bold;
+  color: red;
+  z-index: 5;
+  padding: 0;
+  margin: 0;
+  pointer-events: none;
+}
+
+.active {
+  display: block;
+}
+.inactive {
+  display: none;
+}
+
+.form {
+  z-index: 5;
+  width: 85%;
+  max-width: 1000px;
+  max-height: 50px;
+  min-height: 35px;
+  aspect-ratio: 1000 / 35;
+  background-color: transparent;
+  border-radius: 8px;
+  color: black;
+  border: 1.6px solid #9c9c9c;
+  padding-left: 2%;
+  margin-bottom: 6%;
+}
+
+.form ::placeholder {
+  color: #9c9c9c;
+  opacity: 1;
+}
+
+.button {
+  z-index: 5;
+  margin: auto 0 10%;
+  width: 87%;
+  transition:
+    background-color 0.3s ease,
+    box-shadow 0.3s ease;
+  background-color: #40e0d0;
+  box-shadow: none;
+}
+
+.button:active {
+  background-color: #30c1b1;
+  background-color: rgba(0, 0, 0, 0.7);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+@media (min-width: 768px) {
+  .headerBackground .title {
+    font-size: 20px;
+  }
+  .errorMessage {
+    font-size: 15px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .headerBackground .title {
+    font-size: 23px;
+  }
+}

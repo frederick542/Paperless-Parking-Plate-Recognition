@@ -1,3 +1,4 @@
+import { WebSocket } from 'ws';
 import { getUrl, storageBucket, db } from '../config/firebaseConfig';
 
 const uploadPlatePicture = async (
@@ -57,7 +58,12 @@ const parkOut = async (
   const userDocData = userDocSnap.data();
   const locationDocData = locationDocSnap.data();
 
-  if (!userDocSnap.exists || !locationDocSnap.exists || !userDocData || !locationDocData) {
+  if (
+    !userDocSnap.exists ||
+    !locationDocSnap.exists ||
+    !userDocData ||
+    !locationDocData
+  ) {
     console.log('No such document!');
     return 'No such document!';
   }
@@ -121,76 +127,6 @@ const parkOut = async (
   return 'File uploaded and Succesfuly get out';
 };
 
-const pageSize = 10;
-const query = async (
-  location: string,
-  timeInLowerLimit: Date,
-  timeInUpperLimit: Date,
-  plateNumber: string = '',
-  lastVisibleId: string,
-  operation: string
-) => {
-  let lastVisible = lastVisibleId
-    ? await db
-        .collection('location')
-        .doc(location)
-        .collection('in')
-        .doc(lastVisibleId)
-        .get()
-    : null;
-  let firestoreQuery = db
-    .collection('location')
-    .doc(location)
-    .collection('in')
-    .orderBy('time_in')
-    .limit(pageSize);
-
-  if (timeInLowerLimit) {
-    firestoreQuery = firestoreQuery.where('time_in', '>=', timeInLowerLimit);
-  }
-
-  if (timeInUpperLimit) {
-    firestoreQuery = firestoreQuery.where('time_in', '<=', timeInUpperLimit);
-  }
-
-  if (lastVisible) {
-    if (operation == 'foward') {
-      firestoreQuery = firestoreQuery.startAfter(lastVisible);
-    } else if (operation == 'backward') {
-      firestoreQuery = firestoreQuery.endBefore(lastVisible);
-    } else {
-      return [];
-    }
-  }
-  const snapshot = await firestoreQuery.get();
-  const firstDocId = snapshot.docs.length > 0 ? snapshot.docs[0].id : null;
-  const lastDocId =
-    snapshot.docs.length > 0
-      ? snapshot.docs[snapshot.docs.length - 1].id
-      : null;
-  const results = snapshot.docs.map((doc) => ({
-    plateNumber: doc.id,
-    ...doc.data(),
-  }));
-
-  if (plateNumber) {
-    const foundResult = results.find(
-      (result) => result.plateNumber === plateNumber
-    );
-    return {
-      result: foundResult ? foundResult : null,
-      firstDocId,
-      lastDocId,
-    };
-  }
-
-  return {
-    results,
-    firstDocId,
-    lastDocId,
-  };
-};
-
 const updatePlate = async (
   plateBefore: string,
   plateAfter: string,
@@ -234,4 +170,135 @@ const updatePlate = async (
   console.log('Plate updated successfully.');
 };
 
-export { uploadPlatePicture, parkIn, parkOut, query, updatePlate };
+const monitorDefault = (
+  firestoreQuery: FirebaseFirestore.Query<
+    FirebaseFirestore.DocumentData,
+    FirebaseFirestore.DocumentData
+  >,
+  ws: WebSocket
+) => {
+  firestoreQuery.onSnapshot((snapshot) => {
+    snapshot.docChanges().forEach((change) => {
+      if (change.type === 'modified') {
+        const vehicleData = change.doc;
+        ws.send(
+          JSON.stringify({
+            data: {
+              plateNumber: vehicleData.id,
+              ...vehicleData.data(),
+            },
+            type: 'update',
+          })
+        );
+      } else if (change.type === 'added' || change.type === 'removed') {
+        const initialData = snapshot.docs.map((doc) => ({
+          plateNumber: doc.id,
+          ...doc.data(),
+        }));
+        ws.send(
+          JSON.stringify({
+            type: 'add/remove',
+            data: initialData,
+          })
+        );
+      }
+    });
+  });
+};
+
+const monitorQuery = async (
+  ws: WebSocket,
+  firestoreQuery: FirebaseFirestore.Query<
+    FirebaseFirestore.DocumentData,
+    FirebaseFirestore.DocumentData
+  >,
+  location: string,
+  timeInLowerLimit: Date | undefined,
+  timeInUpperLimit: Date | undefined,
+  plateNumber: string = '',
+  lastVisibleId: string = '',
+  operation: string | undefined
+) => {
+  let lastVisible = lastVisibleId
+    ? await db
+        .collection('location')
+        .doc(location)
+        .collection('in')
+        .doc(lastVisibleId)
+        .get()
+    : null;
+
+  if (timeInLowerLimit) {
+    firestoreQuery = firestoreQuery.where('time_in', '>=', timeInLowerLimit);
+  }
+
+  if (timeInUpperLimit) {
+    firestoreQuery = firestoreQuery.where('time_in', '<=', timeInUpperLimit);
+  }
+
+  if (lastVisible) {
+    if (operation == 'foward') {
+      firestoreQuery = firestoreQuery.startAfter(lastVisible);
+    } else if (operation == 'backward') {
+      firestoreQuery = firestoreQuery.endBefore(lastVisible);
+    } else {
+      ws.send([]);
+    }
+  }
+  firestoreQuery.onSnapshot((snapshot) => {
+    if (snapshot.empty) {
+      ws.send([]);
+    }
+    snapshot.docChanges().forEach((change) => {
+      const firstDocId = snapshot.docs.length > 0 ? snapshot.docs[0].id : null;
+
+      const lastDocId =
+        snapshot.docs.length > 0
+          ? snapshot.docs[snapshot.docs.length - 1].id
+          : null;
+      if (change.type === 'modified') {
+        const vehicleData = change.doc;
+        if (plateNumber) {
+          if (!plateNumber || vehicleData.id === plateNumber) {
+            ws.send(
+              JSON.stringify({
+                data: {
+                  plateNumber: vehicleData.id,
+                  ...vehicleData.data(),
+                },
+                type: 'update',
+                firstDocId,
+                lastDocId,
+              })
+            );
+          }
+        }
+      } else if (change.type === 'added' || change.type === 'removed') {
+        const initialData = snapshot.docs.map((doc) => {
+          if (!plateNumber || doc.id === plateNumber)
+            return {
+              plateNumber: doc.id,
+              ...doc.data(),
+            };
+        });
+        ws.send(
+          JSON.stringify({
+            type: 'add/remove',
+            data: initialData,
+            firstDocId,
+            lastDocId,
+          })
+        );
+      }
+    });
+  });
+};
+
+export {
+  uploadPlatePicture,
+  parkIn,
+  parkOut,
+  monitorQuery,
+  updatePlate,
+  monitorDefault,
+};

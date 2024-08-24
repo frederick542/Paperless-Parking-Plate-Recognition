@@ -1,0 +1,15 @@
+.block {
+  height: 100%;
+  width: 20%;
+  display: flex;
+  align-items: center;
+}
+
+.title {
+  font-weight: bold;
+  color: #B4B4B4;
+  font-size: 1.2rem;
+  background-color: transparent;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

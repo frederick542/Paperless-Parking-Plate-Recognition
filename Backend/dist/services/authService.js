@@ -32,7 +32,7 @@ const handleAdminLogin = (username, password) => __awaiter(void 0, void 0, void 
     };
     const token = jwtUtils_1.default.generateToken(adminPayload);
     return {
-        token: token,
+        tokenVal: token,
         location: admin.location,
     };
 });

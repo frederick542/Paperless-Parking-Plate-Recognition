@@ -4,34 +4,49 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const jwtUtils_1 = __importDefault(require("../utils/jwtUtils"));
-const verifyTokenAdmin = (req, res, next) => {
-    const token = req.headers['authorization'];
+const verifyToken = (role) => (req, res, next) => {
+    const payload = JSON.parse(req.cookies.token);
+    const token = payload.tokenVal;
     if (!token) {
         res.status(403).json({ message: 'No token provided' });
         return;
     }
     try {
-        const decoded = jwtUtils_1.default.verifyToken(token);
-        req.body.user = decoded;
+        let decoded = jwtUtils_1.default.verifyToken(token);
+        if (!decoded) {
+            throw new Error('Invalid token');
+        }
+        if (role === 'admin') {
+            req.body.user = decoded;
+        }
+        else if (role === 'user') {
+            req.body.user = decoded;
+        }
         next();
     }
     catch (err) {
         res.status(401).json({ message: 'Unauthorized' });
     }
 };
-const verifyTokenUser = (req, res, next) => {
-    const token = req.headers['authorization'];
+const verifyCookie = (req, res) => {
+    const token = JSON.parse(req.cookies['token']);
     if (!token) {
         res.status(403).json({ message: 'No token provided' });
         return;
     }
     try {
-        const decoded = jwtUtils_1.default.verifyToken(token);
-        req.body.user = decoded;
-        next();
+        let decoded = jwtUtils_1.default.verifyToken(token.tokenVal);
+        if (!decoded) {
+            res.status(403).json({ message: 'No token provided' });
+            return;
+        }
+        res.status(200).json({ message: 'Authorized' });
+        return;
     }
     catch (err) {
         res.status(401).json({ message: 'Unauthorized' });
     }
 };
-exports.default = { verifyTokenAdmin, verifyTokenUser };
+const verifyTokenAdmin = verifyToken('admin');
+const verifyTokenUser = verifyToken('user');
+exports.default = { verifyTokenAdmin, verifyTokenUser, verifyCookie };

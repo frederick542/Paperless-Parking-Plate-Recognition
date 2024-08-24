@@ -1,0 +1,85 @@
+.container {
+  position: absolute;
+  z-index: 10;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.itemContainer {
+  width: 35vw;
+  height: 50vh;
+  display: flex;
+  background-color: #2b312e;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+}
+
+.plate {
+  margin-top: 5%;
+  margin-bottom: 5%;
+  font-weight: 2rem;
+}
+.formContainer {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  width: 90%;
+  height: 50%;
+}
+.formObjectContainer {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  width: 50%;
+  height: 100%;
+}
+
+.image {
+  width: 90%;
+  height: 90%;
+  object-fit: cover;
+}
+.text {
+  font-weight: 1.3rem;
+}
+.plateRename {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  position: relative;
+}
+.input {
+  height: 1.3rem;
+  background-color: transparent;
+  border-radius: 10px;
+  margin-left: 10px;
+  border: 1px solid white;
+}
+.close {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  background-color: transparent;
+}
+.top {
+  width: 100%;
+  height: 90px;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  margin: 0
+}
+
+.error {
+  color: transparent; 
+}
+
+.error.visible {
+  color: red; 
+}
