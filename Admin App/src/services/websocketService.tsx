@@ -4,6 +4,7 @@ const WS_URL = import.meta.env.VITE_WS_URL;
 
 const createConnection = (
   setItems: React.Dispatch<React.SetStateAction<Item[]>>,
+  setSendItem: React.Dispatch<React.SetStateAction<boolean>>,
 ) => {
   console.log("Creating WebSocket connection...");
   const socket = new WebSocket(WS_URL);
@@ -15,7 +16,6 @@ const createConnection = (
   socket.onmessage = (event) => {
     try {
       const data = JSON.parse(event.data);
-      console.log(data)
       if (data.type == "update") {
         setItems((prevItems) => {
           const updatedItems = [...prevItems];
@@ -27,12 +27,13 @@ const createConnection = (
           });
         });
       } else {
+        setSendItem(false);
         sessionStorage.setItem(
           "history",
           JSON.stringify({
             firstDocId: data.firstDocId,
             lastDocId: data.lastDocId,
-          })
+          }),
         );
         setItems(data.data);
       }

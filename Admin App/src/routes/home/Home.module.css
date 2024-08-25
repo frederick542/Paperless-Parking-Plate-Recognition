@@ -68,3 +68,10 @@
   font-weight: bold;
   font-size: 1.3rem;
 }
+
+.extendButton {
+  background-color: transparent;
+  color: #898989;
+  margin: 10px;
+  font-weight: 1.2rem;
+}

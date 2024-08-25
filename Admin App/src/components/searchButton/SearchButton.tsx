@@ -7,14 +7,17 @@ interface SearchButtonPropsWithSetter {
   payload: SearchButtonProps;
   setOnQuery: React.Dispatch<React.SetStateAction<boolean>>;
   socket: WebSocket | undefined;
+  setPayload: React.Dispatch<React.SetStateAction<SearchButtonProps>>;
 }
 
 export const SearchButton: React.FC<SearchButtonPropsWithSetter> = ({
   payload,
   setOnQuery,
   socket,
+  setPayload,
 }) => {
-  const queryFilter = () => {
+  const queryFilter = async () => {
+    setPayload(payload);
     gueryVehicle(payload, socket);
     setOnQuery(true);
   };

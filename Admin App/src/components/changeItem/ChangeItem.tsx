@@ -7,7 +7,7 @@ interface ChangeItemProps {
 }
 
 export const ChangeItem: React.FC<ChangeItemProps> = ({ item }) => {
-  const { openModal} = useModal();
+  const { openModal } = useModal();
   return (
     <div className={styles.block}>
       <button

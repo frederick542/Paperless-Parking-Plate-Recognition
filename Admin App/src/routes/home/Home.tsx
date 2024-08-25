@@ -12,32 +12,92 @@ import { Modal } from "../../components/modal/Modal";
 import { useModal } from "../../hooks/modalHooks";
 
 export const Home = () => {
+  const [previousLength, setPreviousLength] = useState<number>(-1);
   const [date, setDate] = useState("");
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
   const [plateNumber, setPlateNumber] = useState("");
+  const [extendStatus, setExtendStatus] = useState(true);
+  const [sendItem, setSendItem] = useState<boolean>(false);
   const [items, setItems] = useState<Item[]>([]);
   const [socket, setSocket] = useState<WebSocket>();
   const [onQuery, setOnQuery] = useState<boolean>(false);
-  useModal()
+  const [payload, setPayload] = useState<SearchButtonProps>({
+    date: "",
+    timeInLowerLimit: "",
+    timeInUpperLimit: "",
+    plateNumber: "",
+    operation: "",
+  });
+  useModal();
   useEffect(() => {
-    setSocket(createConnection(setItems));
+    setSocket(createConnection(setItems, setSendItem));
   }, []);
 
   useEffect(() => {
+    if (items.length == previousLength) {
+      setExtendStatus(false);
+    } else {
+      setExtendStatus(true);
+    }
+  }, [items]);
+
+  useEffect(() => {
     if (onQuery && !date && !startTime && !endTime && !plateNumber) {
+      console.log("HIIBABYYY");
+      setPreviousLength(-1);
+
+      const newPayload: SearchButtonProps = {
+        date: "",
+        timeInLowerLimit: "",
+        timeInUpperLimit: "",
+        plateNumber: "",
+        operation: "",
+      };
+
+      setPayload(newPayload);
+
       const payloadString = JSON.stringify({
-        payload: {},
-        type: "query",
+        payload: newPayload,
+        type: "default",
       });
       setOnQuery(false);
       socket?.send(payloadString);
     }
-  }, [date, startTime, endTime, plateNumber]);
+  }, [date, startTime, endTime, plateNumber, onQuery]);
+
+  useEffect(() => {
+    if (sendItem && payload.operation === "foward") {
+      const payloadString = JSON.stringify({
+        payload: payload,
+        type: onQuery ? "default" : "query",
+      });
+
+      socket?.send(payloadString);
+      setSendItem(false);
+    }
+  }, [payload, sendItem]);
+
+  const extend = () => {
+    if (extendStatus === false) {
+      return;
+    }
+
+    setPayload((prevPayload) => ({
+      date: prevPayload?.date || "",
+      timeInLowerLimit: prevPayload?.timeInLowerLimit || "",
+      timeInUpperLimit: prevPayload?.timeInUpperLimit || "",
+      plateNumber: prevPayload?.plateNumber || "",
+      operation: "foward",
+    }));
+
+    setSendItem(true);
+    setPreviousLength(items.length);
+  };
 
   return (
     <div className={styles.page}>
-      <Modal/>
+      <Modal />
       <div className={styles.container}>
         <div className={styles.titleContainer}>
           <p className={styles.title}>Parking List</p>
@@ -75,6 +135,7 @@ export const Home = () => {
               }
               socket={socket}
               setOnQuery={setOnQuery}
+              setPayload={setPayload}
             />
           </div>
           <div className={styles.contentTitleContainer}>
@@ -105,6 +166,14 @@ export const Home = () => {
                 />
               ))}
         </div>
+        <button
+          className={styles.extendButton}
+          onClick={() => {
+            extend();
+          }}
+        >
+          {extendStatus ? "tap here to extend" : "no more items"}
+        </button>
       </div>
     </div>
   );

@@ -212,21 +212,11 @@ const monitorQuery = async (
     FirebaseFirestore.DocumentData,
     FirebaseFirestore.DocumentData
   >,
-  location: string,
   timeInLowerLimit: Date | undefined,
   timeInUpperLimit: Date | undefined,
   plateNumber: string = '',
-  lastVisibleId: string = '',
-  operation: string | undefined
 ) => {
-  let lastVisible = lastVisibleId
-    ? await db
-        .collection('location')
-        .doc(location)
-        .collection('in')
-        .doc(lastVisibleId)
-        .get()
-    : null;
+    console.log(plateNumber);
 
   if (timeInLowerLimit) {
     firestoreQuery = firestoreQuery.where('time_in', '>=', timeInLowerLimit);
@@ -235,16 +225,7 @@ const monitorQuery = async (
   if (timeInUpperLimit) {
     firestoreQuery = firestoreQuery.where('time_in', '<=', timeInUpperLimit);
   }
-
-  if (lastVisible) {
-    if (operation == 'foward') {
-      firestoreQuery = firestoreQuery.startAfter(lastVisible);
-    } else if (operation == 'backward') {
-      firestoreQuery = firestoreQuery.endBefore(lastVisible);
-    } else {
-      ws.send([]);
-    }
-  }
+  
   firestoreQuery.onSnapshot((snapshot) => {
     if (snapshot.empty) {
       ws.send([]);

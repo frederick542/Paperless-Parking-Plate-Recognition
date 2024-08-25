@@ -119,21 +119,27 @@ const handleChangePlateNumber = async (
   }
 };
 
-const pageSize = 100;
+const increment = 1;
+let pageSize = 1;
 const handleMonitorRealTimeData = async (
   ws: WebSocket,
   location: string,
   data: queryPayload
 ) => {
   const type: string = data.type;
+  if (data.payload.operation == 'foward') {
+    pageSize += increment;
+  } else {
+    pageSize = increment;
+  }
   if (type == 'default') {
     const vehiclesRef = db
-      .collection('location')
-      .doc(location)
-      .collection('in')
-      .orderBy('time_in', 'desc')
-      .limit(100);
-
+    .collection('location')
+    .doc(location)
+    .collection('in')
+    .orderBy('time_in', 'desc')
+    .limit(pageSize);
+    
     monitorDefault(vehiclesRef, ws);
   } else if (type == 'query') {
     const vehiclesRefQuery = db
@@ -141,16 +147,13 @@ const handleMonitorRealTimeData = async (
       .doc(location)
       .collection('in')
       .orderBy('time_in', 'desc')
-      .limit(100);
+      .limit(pageSize);
     monitorQuery(
       ws,
       vehiclesRefQuery,
-      location,
       data.payload.timeInLowerLimit,
       data.payload.timeInUpperLimit,
       data.payload.plateNumber,
-      data.payload.lastVisibleId,
-      data.payload.operation
     );
   } else {
     ws.send([]);

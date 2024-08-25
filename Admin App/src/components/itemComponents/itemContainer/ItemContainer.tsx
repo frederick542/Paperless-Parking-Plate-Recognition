@@ -9,7 +9,7 @@ interface ItemContainerProps {
   plate?: string;
   date?: string;
   timeIn?: string;
-  item : Item
+  item: Item;
 }
 
 export const ItemContainer: React.FC<ItemContainerProps> = ({
@@ -17,7 +17,7 @@ export const ItemContainer: React.FC<ItemContainerProps> = ({
   plate,
   date,
   timeIn,
-  item 
+  item,
 }) => {
   return (
     <div className={styles.container}>
