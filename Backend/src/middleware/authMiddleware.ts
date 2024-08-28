@@ -5,9 +5,16 @@ import { User } from '../model/userInterface';
 
 const verifyToken =
   (role: 'admin' | 'user') =>
-  (req: Request, res: Response, next: NextFunction): void => {
-    const payload = JSON.parse(req.cookies.token);
-    const token = payload.tokenVal;
+  (req: Request, res: Response, next: NextFunction) => {
+    let token: string;
+    if (role == 'admin') {
+      const payload = JSON.parse(req.cookies.token);
+      token = payload.tokenVal;
+    } else if (role == 'user') {
+      token = req.headers['authorization'] || '';
+    } else {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
     if (!token) {
       res.status(403).json({ message: 'No token provided' });
       return;
@@ -15,6 +22,7 @@ const verifyToken =
 
     try {
       let decoded = jwtUtils.verifyToken(token);
+
       if (!decoded) {
         throw new Error('Invalid token');
       }

@@ -119,8 +119,8 @@ const handleChangePlateNumber = async (
   }
 };
 
-const increment = 1;
-let pageSize = 1;
+const increment = 5;
+let pageSize = 10;
 const handleMonitorRealTimeData = async (
   ws: WebSocket,
   location: string,

@@ -11,6 +11,7 @@ const postPlate = async (req: Request, res: Response) => {
     if (!file) {
       return res.status(400).send('No file uploaded.');
     }
+
     if (!operation || !location) {
       return res.status(400).send('please include required variable.');
     }

@@ -10,7 +10,7 @@ const getHistoryData = async (plate: string, limit: number) => {
 
   const querySnapshot = await firestoreHistoryRef.get();
   if (querySnapshot.empty) {
-    return null;
+    return [];
   }
 
   const historyData = querySnapshot.docs.map((doc) => doc.data());
@@ -19,6 +19,7 @@ const getHistoryData = async (plate: string, limit: number) => {
 };
 
 const getPaymentStatusData = async (plate: string) => {
+  
   try {
     const userDocRef = db.collection('user').doc(plate);
 
@@ -43,6 +44,7 @@ const getPaymentStatusData = async (plate: string) => {
 
 const getPaymentData = async (plate: string) => {
   try {
+
     const userDocRef = db.collection('user').doc(plate);
     const docSnapshot = await userDocRef.get();
     const userData = docSnapshot.data();

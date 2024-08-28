@@ -4,7 +4,7 @@ import { Admin } from '../model/adminInterface';
 import {
   checkUserAvailability,
   getAdminByUsername,
-  getUserByPlate,
+  getUserByEmail,
   registerUser,
 } from '../repositories/authRepository';
 import { error } from 'console';
@@ -36,10 +36,10 @@ const handleAdminLogin = async (
 };
 
 const handleUserLogin = async (
-  plate: string,
+  email: string,
   password: string
 ): Promise<object> => {
-  const user = await getUserByPlate(plate);
+  const user = await getUserByEmail(email);
   if (!user) {
     throw new Error('Invalid username or password');
   }
@@ -50,10 +50,10 @@ const handleUserLogin = async (
   }
 
   const userPayload = {
-    plate: user.id,
+    plate: user.plate,
     username: user.name,
   };
-  
+
   const token = jwtUtils.generateToken(userPayload);
   return {
     token: token,
@@ -64,13 +64,16 @@ const handleUserLogin = async (
 const handleUserRegister = async (
   username: string,
   password: string,
-  plate: string
+  plate: string,
+  email: string
 ) => {
-  if (await checkUserAvailability(plate)) {
-    throw error;
+  const result = await checkUserAvailability(plate, email);
+  if (result.status === 'unaccepted') {
+    return result;
   }
 
-  registerUser(username, password, plate);
+  registerUser(username, password, plate, email);
+  return result;
 };
 
 export { handleAdminLogin, handleUserLogin, handleUserRegister };

@@ -50,7 +50,6 @@ const parkOut = async (
 ): Promise<string> => {
   const imageUrl = await getUrl(destinationPath);
   const currentDate = new Date().toISOString();
-
   const [userDocSnap, locationDocSnap] = await Promise.all([
     db.collection('user').doc(plateNumber).get(),
     db.collection('location').doc(location).get(),
@@ -102,6 +101,7 @@ const parkOut = async (
   const batch = db.batch();
   const time_out_string = time_out.toISOString();
   const time_in_string = time_in.toISOString();
+
   batch.set(locationDocRef, {
     time_in: time_in_string,
     time_out: time_out_string,
@@ -214,10 +214,15 @@ const monitorQuery = async (
   >,
   timeInLowerLimit: Date | undefined,
   timeInUpperLimit: Date | undefined,
-  plateNumber: string = '',
+  plateNumber: string = ''
 ) => {
-    console.log(plateNumber);
-
+  if (timeInLowerLimit && !timeInUpperLimit) {
+    timeInUpperLimit = new Date(timeInLowerLimit);
+    timeInUpperLimit.setHours(23, 59, 59, 999);
+  } else if (!timeInLowerLimit && timeInUpperLimit) {
+    timeInLowerLimit = new Date(timeInUpperLimit);
+    timeInLowerLimit.setHours(0, 0, 0, 0);
+  }
   if (timeInLowerLimit) {
     firestoreQuery = firestoreQuery.where('time_in', '>=', timeInLowerLimit);
   }
@@ -225,7 +230,7 @@ const monitorQuery = async (
   if (timeInUpperLimit) {
     firestoreQuery = firestoreQuery.where('time_in', '<=', timeInUpperLimit);
   }
-  
+
   firestoreQuery.onSnapshot((snapshot) => {
     if (snapshot.empty) {
       ws.send([]);

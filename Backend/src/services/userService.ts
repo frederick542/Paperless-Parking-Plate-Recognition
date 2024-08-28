@@ -12,13 +12,14 @@ const handleHistory = async (plate: string) => {
 };
 
 const handlePaymentStatus = async (plate: string) => {
-  if (!(await getPaymentStatusData(plate))) {
+  if ((await getPaymentStatusData(plate)) == false) {
     return await getPaymentData(plate);
   }
   return null;
 };
 
 const handlePayment = async (plate: string, paid: number) => {
+
   if (!(await getPaymentStatusData(plate))) {
     return await payBills(plate, paid);
   }

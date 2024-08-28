@@ -22,7 +22,7 @@ const getPaymentStatus = async (req: Request, res: Response) => {
   try {
     data = await handlePaymentStatus(user.plate);
     if (!data) {
-      return res.status(200).send('alreadyPaid');
+      return res.status(200).send('currently not in any places / already paid');
     }
   } catch (error) {
     return res.status(404).send('No data found');
@@ -33,9 +33,10 @@ const getPaymentStatus = async (req: Request, res: Response) => {
 const pay = async (req: Request, res: Response) => {
   const { user, paid } = req.body;
   let data;
-  if (!user || !paid) {
+  if (!user) {
     return res.status(400).send('Bad Request');
   }
+
   try {
     data = await handlePayment(user.plate, paid);
     if (!data) {

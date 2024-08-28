@@ -44,7 +44,6 @@ export const Home = () => {
 
   useEffect(() => {
     if (onQuery && !date && !startTime && !endTime && !plateNumber) {
-      console.log("HIIBABYYY");
       setPreviousLength(-1);
 
       const newPayload: SearchButtonProps = {
