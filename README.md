@@ -22,7 +22,7 @@ This project is a prototype application designed for automatic license plate rec
 ### Installation Steps
 1. Clone the repository:
    ```bash
-   git clone [https://github.com/username/Paperless-Parking-Plate-Recognition.git](https://github.com/frederick542/Paperless-Parking-Plate-Recognition.git)
+   git clone https://github.com/frederick542/Paperless-Parking-Plate-Recognition.git
 2. Navigate to the project directory:
     ```bash
     cd Paperless-Parking-Plate-Recognition
