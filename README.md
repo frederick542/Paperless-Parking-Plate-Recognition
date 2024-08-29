@@ -37,3 +37,24 @@ This project is a prototype application designed for automatic license plate rec
     ```bash
     cd ../mobile-app
     npm install
+Run Tutorial
+1. Model API: Start the model API using Uvicorn:
+   ```bash
+   cd ../model
+   uvicorn api:app --reload
+2. Backend: Start the backend server:
+   ```bash
+   cd ../backend
+   npm run server
+3. Admin Frontend: Start the admin frontend:
+   ```bash
+   cd ../admin-frontend
+   npm run dev
+4. Mobile App: Start the mobile app:
+   ```bash
+   cd ../mobile-app
+   npm start
+Usage
+* Add Vehicle: Add a vehicle by sending an API request to the readPlate route in the backend.
+* Admin App: Use the admin app to modify license plates and monitor parking spaces.
+* Mobile App: Use the mobile app to make payments and view parking history.
