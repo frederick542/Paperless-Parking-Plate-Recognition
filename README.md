@@ -1,1 +1,39 @@
-![Automated_License_Plate_Recognition_System_with_Integrated_Parking_Management](https://github.com/user-attachments/assets/8f1afde0-8a58-4e61-a9dd-836da6a9c9dc)
+![BreadcrumbsPaperless-Parking-Plate-Recognitionttps://github.com/user-attachments/assets/8f1afde0-8a58-4e61-a9dd-836da6a9c9dc)
+# Paperless-Parking-Plate-Recognition
+
+## Description
+This project is a prototype application designed for automatic license plate recognition and aims to replace traditional parking tickets. Although the application is not currently connected to any payment gateway or IoT devices, it already has a solid use case with a prediction model, an admin app for monitoring status, and a user app for purchasing and viewing history.
+
+## Features
+- **Plate Recognition**: Utilizes YOLOv8 for detecting and recognizing vehicle license plates.
+- **Parking Management**: Integrated parking management system with admin and mobile applications.
+
+## Installation
+
+### Prerequisites
+- **YOLOv8**: Set up YOLOv8 for license plate detection.
+- **OpenCV**: Required for reading and processing license plates.
+- **Uvicorn**: Install the Uvicorn package to run the model API.
+- **Backend**: Set up a standard Express.js application for the backend.
+- **Admin Frontend**: Set up the admin frontend using React with Vite.
+- **Mobile App**: Set up the mobile app using React Native.
+
+### Installation Steps
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/username/Paperless-Parking-Plate-Recognition.git
+2. Navigate to the project directory:
+    ```bash
+    cd Paperless-Parking-Plate-Recognition
+3. Install dependencies for the backend:
+    ```bash
+    cd backend
+    npm install
+4. Set up the admin frontend:
+    ```bash
+    cd ../admin-frontend
+    npm install
+5. Set up the mobile app:
+    ```bash
+    cd ../mobile-app
+    npm install
