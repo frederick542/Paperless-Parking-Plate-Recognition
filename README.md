@@ -1,5 +1,5 @@
 
-![Uploading Automated_License_Plate_Recognition_System_with_Integrated_Parking_Management.png…]()
+![Automated_License_Plate_Recognition_System_with_Integrated_Parking_Management](https://github.com/user-attachments/assets/80f83382-93b7-4ad4-b330-ad7e7ecd8520)
 
 # Paperless-Parking-Plate-Recognition
 
