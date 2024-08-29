@@ -22,38 +22,38 @@ This project is a prototype application designed for automatic license plate rec
 ### Installation Steps
 1. Clone the repository:
    ```bash
-   git clone https://github.com/username/Paperless-Parking-Plate-Recognition.git
+   git clone [https://github.com/username/Paperless-Parking-Plate-Recognition.git](https://github.com/frederick542/Paperless-Parking-Plate-Recognition.git)
 2. Navigate to the project directory:
     ```bash
     cd Paperless-Parking-Plate-Recognition
 3. Install dependencies for the backend:
     ```bash
-    cd backend
+    cd Backend
     npm install
 4. Set up the admin frontend:
     ```bash
-    cd ../admin-frontend
+    cd ../"Admin App"
     npm install
 5. Set up the mobile app:
     ```bash
-    cd ../mobile-app
+    cd ../mobile_app
     npm install
 Run Tutorial
 1. Model API: Start the model API using Uvicorn:
    ```bash
-   cd ../model
+   cd ../"Object Detection"
    uvicorn api:app --reload
 2. Backend: Start the backend server:
    ```bash
-   cd ../backend
+   cd ../Backend
    npm run server
 3. Admin Frontend: Start the admin frontend:
    ```bash
-   cd ../admin-frontend
+   cd ../"Admin App"
    npm run dev
 4. Mobile App: Start the mobile app:
    ```bash
-   cd ../mobile-app
+   cd ../mobile_app
    npm start
 Usage
 * Add Vehicle: Add a vehicle by sending an API request to the readPlate route in the backend.
