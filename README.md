@@ -1,8 +1,6 @@
 
 ![Automated_License_Plate_Recognition_System_with_Integrated_Parking_Management](https://github.com/user-attachments/assets/80f83382-93b7-4ad4-b330-ad7e7ecd8520)
 
-# Paperless-Parking-Plate-Recognition
-
 ## Description
 This project is a prototype application designed for automatic license plate recognition and aims to replace traditional parking tickets. Although the application is not currently connected to any payment gateway or IoT devices, it already has a solid use case with a prediction model, an admin app for monitoring status, and a user app for purchasing and viewing history.
 
