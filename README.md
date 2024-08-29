@@ -17,6 +17,7 @@ This project is a prototype application designed for automatic license plate rec
 - **Backend**: Set up a standard Express.js application for the backend.
 - **Admin Frontend**: Set up the admin frontend using React with Vite.
 - **Mobile App**: Set up the mobile app using React Native.
+- **Firebase**: Configure Firebase for database management and ensure you have the necessary credentials and configuration files.
 
 ### Installation Steps
 1. Clone the repository:
